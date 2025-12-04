@@ -18,34 +18,35 @@ class Config:
     TEST_FILE = "Test.csv"  # 测试集文件名
     VALID_FILE = "Valid.csv"  # 验证集文件名（如果存在）
     USE_LOCAL_DATASET = True  # 是否使用本地数据集
-    MAX_LENGTH = 256  # 最大序列长度（减少以加快训练）
-    BATCH_SIZE = 32  # 批次大小（增加以加快训练）
-    GRADIENT_ACCUMULATION_STEPS = 2  # 梯度累积步数（保持有效批次大小）
+    MAX_LENGTH = 512  # 最大序列长度（GPU可用，可以增加到512）
+    BATCH_SIZE = 64  # 批次大小（GPU可用，增加到64）
+    GRADIENT_ACCUMULATION_STEPS = 1  # 梯度累积步数（GPU显存足够，可以设为1）
     VALIDATION_SPLIT = 0.1  # 验证集比例（如果本地没有验证集，从训练集划分）
     
     # LoRA配置
     USE_LORA = True  # 是否使用LoRA微调
-    LORA_R = 4  # LoRA的rank（减少以加快训练）
-    LORA_ALPHA = 8  # LoRA的alpha参数（相应调整）
+    LORA_R = 16  # LoRA的rank（GPU可用，增加到16提升性能）
+    LORA_ALPHA = 32  # LoRA的alpha参数（通常是rank的2倍）
     LORA_DROPOUT = 0.1  # LoRA的dropout率
     # LoRA目标模块：对于DistilBERT，通常是["q_lin", "v_lin"]
     # 如果遇到错误，可以尝试["query", "value"]或使用auto模式
     TARGET_MODULES = ["q_lin", "v_lin"]  # LoRA目标模块
     
     # 训练配置
-    NUM_EPOCHS = 2  # 训练轮数（减少以加快训练）
+    NUM_EPOCHS = 3  # 训练轮数（GPU可用，增加到3轮提升性能）
     LEARNING_RATE = 2e-5  # 学习率
     WEIGHT_DECAY = 0.01  # 权重衰减
-    WARMUP_STEPS = 200  # 预热步数（减少以加快训练）
-    LOGGING_STEPS = 50  # 日志记录步数（减少日志频率）
-    SAVE_STEPS = 1000  # 模型保存步数（减少保存频率）
-    EVAL_STEPS = 1000  # 评估步数（减少评估频率）
-    MAX_TRAIN_SAMPLES = None  # 最大训练样本数（None表示使用全部，可设置如10000来快速测试）
+    WARMUP_STEPS = 500  # 预热步数（GPU可用，可以增加）
+    LOGGING_STEPS = 100  # 日志记录步数
+    SAVE_STEPS = 500  # 模型保存步数（GPU训练更快，可以更频繁保存）
+    EVAL_STEPS = 500  # 评估步数（GPU评估更快，可以更频繁评估）
+    MAX_TRAIN_SAMPLES = None  # 最大训练样本数（None表示使用全部）
     
     # 输出配置
-    OUTPUT_DIR = "./output"  # 输出目录
+    OUTPUT_DIR = "./output"  # 输出目录（训练过程中的检查点）
     LOG_DIR = "./logs"  # 日志目录
-    SAVE_MODEL_DIR = "./saved_models"  # 保存模型目录
+    SAVE_MODEL_DIR = "./saved_models"  # 保存模型目录（最终模型和最佳模型）
+    AUTO_SAVE = True  # 是否自动保存模型（训练完成后）
     
     # 可解释性配置
     NUM_SAMPLES_FOR_EXPLAIN = 10  # 用于可解释性分析的样本数量

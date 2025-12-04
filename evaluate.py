@@ -101,12 +101,22 @@ def evaluate_model(model_path, dataset_name="imdb"):
 
 
 if __name__ == "__main__":
-    model_path = os.path.join(Config.SAVE_MODEL_DIR, "final_model")
-    if not os.path.exists(model_path):
-        print(f"模型路径不存在: {model_path}")
-        print("请先运行 train.py 训练模型")
+    # 优先使用最佳模型，如果不存在则使用最终模型
+    best_model_path = os.path.join(Config.SAVE_MODEL_DIR, "best_model")
+    final_model_path = os.path.join(Config.SAVE_MODEL_DIR, "final_model")
+    
+    if os.path.exists(best_model_path):
+        print("使用最佳模型进行评估...")
+        model_path = best_model_path
+    elif os.path.exists(final_model_path):
+        print("使用最终模型进行评估...")
+        model_path = final_model_path
     else:
-        evaluate_model(model_path, Config.DATASET_NAME)
+        print(f"模型路径不存在: {best_model_path} 或 {final_model_path}")
+        print("请先运行 train.py 训练模型")
+        exit(1)
+    
+    evaluate_model(model_path, Config.DATASET_NAME)
 
 
 
