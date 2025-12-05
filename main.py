@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
 """
 主运行脚本：整合训练、评估和可解释性分析
+
+主要功能：
+- main(): 统一入口，支持训练、评估、可解释性分析的单独或组合运行
+
+调用关系：
+- 调用 train.train() (train.py第42行) 进行模型训练
+- 调用 evaluate.evaluate_model() (evaluate.py第18行) 进行模型评估
+- 调用 explainability.analyze_explainability() (explainability.py第228行) 进行可解释性分析
 """
 import argparse
 import os
-from config import Config
-from train import train
-from evaluate import evaluate_model
-from explainability import analyze_explainability
+from config import Config  # 配置文件
+from train import train  # 训练模块，定义在train.py第42行
+from evaluate import evaluate_model  # 评估模块，定义在evaluate.py第18行
+from explainability import analyze_explainability  # 可解释性模块，定义在explainability.py第228行
 
 
 def main():
@@ -34,7 +42,7 @@ def main():
         print("="*50)
         print("开始训练模型...")
         print("="*50)
-        train()
+        train()  # 调用train.py第42行定义的train函数
     
     if args.mode == 'evaluate' or args.mode == 'all':
         print("\n" + "="*50)
@@ -45,6 +53,7 @@ def main():
             print(f"警告: 模型路径不存在 {model_path}")
             print("请先运行训练模式")
         else:
+            # 调用evaluate.py第18行定义的evaluate_model函数
             evaluate_model(model_path, args.dataset)
     
     if args.mode == 'explain' or args.mode == 'all':
@@ -56,6 +65,7 @@ def main():
             print(f"警告: 模型路径不存在 {model_path}")
             print("请先运行训练模式")
         else:
+            # 调用explainability.py第228行定义的analyze_explainability函数
             analyze_explainability(model_path, args.dataset)
     
     print("\n" + "="*50)

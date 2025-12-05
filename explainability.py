@@ -1,6 +1,19 @@
 # -*- coding: utf-8 -*-
 """
 模型可解释性分析：注意力可视化、SHAP和LIME分析
+
+主要功能：
+- visualize_attention(): 可视化注意力权重
+- shap_analysis(): 使用SHAP进行可解释性分析
+- lime_analysis(): 使用LIME进行可解释性分析
+- analyze_explainability(): 完整的可解释性分析流程
+
+调用关系：
+- 调用 data_loader.prepare_datasets() (data_loader.py第129行) 准备数据集
+- 调用 model_utils.get_model_for_inference() (model_utils.py第172行) 加载推理模型
+- 调用 visualize_attention() (本文件第63行) 进行注意力可视化
+- 调用 shap_analysis() (本文件第151行) 进行SHAP分析
+- 调用 lime_analysis() (本文件第185行) 进行LIME分析
 """
 import os
 import torch
@@ -11,9 +24,9 @@ from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 import shap
 from lime.lime_text import LimeTextExplainer
-from config import Config
-from data_loader import prepare_datasets
-from model_utils import get_model_for_inference
+from config import Config  # 配置文件，定义可解释性分析参数
+from data_loader import prepare_datasets  # 数据加载模块，定义在data_loader.py第129行
+from model_utils import get_model_for_inference  # 模型工具，定义在model_utils.py第172行
 
 
 class ModelWrapper:
@@ -229,19 +242,31 @@ def analyze_explainability(model_path, dataset_name="imdb"):
     """
     进行完整的可解释性分析
     
+    调用流程：
+    1. 调用 prepare_datasets() (data_loader.py第129行) 准备数据集
+    2. 调用 get_model_for_inference() (model_utils.py第172行) 加载推理模型
+    3. 调用 visualize_attention() (本文件第63行) 进行注意力可视化
+    4. 调用 shap_analysis() (本文件第151行) 进行SHAP分析
+    5. 调用 lime_analysis() (本文件第185行) 进行LIME分析
+    
     Args:
-        model_path: 模型路径
+        model_path: 模型路径（LoRA权重目录）
         dataset_name: 数据集名称
+        
+    输出：
+        所有结果自动保存到 ./output/explainability/ 目录
     """
     # 设置设备
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"使用设备: {device}")
     
     # 准备数据集
+    # 调用data_loader.py第129行的prepare_datasets函数
     tokenizer, _, _, test_dataset = prepare_datasets(dataset_name)
     
     # 加载模型
     num_labels = len(set([item['labels'].item() for item in test_dataset]))
+    # 调用model_utils.py第172行的get_model_for_inference函数
     model = get_model_for_inference(model_path, num_labels=num_labels)
     model.to(device)
     
@@ -284,6 +309,7 @@ def analyze_explainability(model_path, dataset_name="imdb"):
         print("\n进行注意力可视化...")
         # 使用一个示例文本
         example_text = "This movie is absolutely fantastic! I loved every minute of it."
+        # 调用本文件第63行定义的visualize_attention函数
         visualize_attention(
             model, tokenizer, example_text, device,
             save_path=os.path.join(explain_dir, "attention_visualization.png")
@@ -293,6 +319,7 @@ def analyze_explainability(model_path, dataset_name="imdb"):
     if Config.USE_SHAP:
         print("\n进行SHAP分析...")
         try:
+            # 调用本文件第151行定义的shap_analysis函数
             shap_analysis(
                 model_wrapper, sample_texts,
                 save_path=os.path.join(explain_dir, "shap_analysis.png")
@@ -305,6 +332,7 @@ def analyze_explainability(model_path, dataset_name="imdb"):
     if Config.USE_LIME:
         print("\n进行LIME分析...")
         try:
+            # 调用本文件第185行定义的lime_analysis函数
             lime_analysis(
                 model_wrapper, sample_texts,
                 save_dir=explain_dir

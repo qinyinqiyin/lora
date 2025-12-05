@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 模型训练脚本：使用LoRA进行参数高效微调
+
+主要功能：
+- train(): 主训练函数，整合数据加载、模型训练、评估和保存流程
+
+调用关系：
+- 调用 data_loader.prepare_datasets() (data_loader.py第129行) 准备数据集
+- 调用 model_utils.get_model_for_training() (model_utils.py第157行) 获取训练模型
+- 调用 compute_metrics() (本文件第16行) 计算评估指标
 """
 import os
 import torch
@@ -8,9 +16,9 @@ from transformers import TrainingArguments, Trainer
 from transformers import DataCollatorWithPadding
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import numpy as np
-from config import Config
-from data_loader import prepare_datasets
-from model_utils import get_model_for_training
+from config import Config  # 配置文件，定义训练超参数
+from data_loader import prepare_datasets  # 数据加载模块，定义在data_loader.py第129行
+from model_utils import get_model_for_training  # 模型工具，定义在model_utils.py第157行
 
 
 def compute_metrics(eval_pred):
@@ -40,17 +48,33 @@ def compute_metrics(eval_pred):
 
 
 def train():
-    """主训练函数"""
+    """
+    主训练函数
+    
+    调用流程：
+    1. 调用 Config.create_dirs() (config.py第57行) 创建输出目录
+    2. 调用 prepare_datasets() (data_loader.py第129行) 准备数据集
+    3. 调用 get_model_for_training() (model_utils.py第157行) 获取训练模型
+    4. 调用 compute_metrics() (本文件第16行) 计算评估指标
+    5. 调用 trainer.train() (transformers库) 执行训练
+    6. 调用 trainer.evaluate() (transformers库) 在测试集上评估
+    
+    Returns:
+        trainer: Trainer对象
+        test_results: 测试集评估结果
+    """
     # 创建输出目录
-    Config.create_dirs()
+    Config.create_dirs()  # 调用config.py第57行的create_dirs方法
     
     # 准备数据集
+    # 调用data_loader.py第129行的prepare_datasets函数
     tokenizer, train_dataset, val_dataset, test_dataset = prepare_datasets(
         Config.DATASET_NAME
     )
     
     # 加载模型
     num_labels = len(set([item['labels'].item() for item in train_dataset]))
+    # 调用model_utils.py第157行的get_model_for_training函数
     model = get_model_for_training(num_labels=num_labels)
     
     # 数据整理器
@@ -105,7 +129,7 @@ def train():
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
         data_collator=data_collator,
-        compute_metrics=compute_metrics,
+        compute_metrics=compute_metrics,  # 使用本文件第16行定义的compute_metrics函数
     )
     
     # 开始训练

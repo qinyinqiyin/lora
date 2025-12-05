@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 模型工具函数：加载模型、设置LoRA等
+
+本模块提供模型加载和LoRA配置功能：
+- load_model(): 加载预训练模型（优先从本地加载）
+- setup_lora(): 配置LoRA参数高效微调
+- get_model_for_training(): 获取用于训练的模型（包含LoRA）
+- get_model_for_inference(): 获取用于推理的模型（加载LoRA权重）
 """
 import os
 from transformers import AutoModelForSequenceClassification, AutoConfig
 from peft import LoraConfig, get_peft_model, TaskType
 import torch
-from config import Config
+from config import Config  # 配置文件，定义模型路径、LoRA参数等
 
 
 def load_model(num_labels=2):
@@ -158,14 +164,18 @@ def get_model_for_training(num_labels=2):
     """
     获取用于训练的模型（包含LoRA配置）
     
+    调用流程：
+    1. 调用 load_model() (本文件第12行) 加载基础模型
+    2. 调用 setup_lora() (本文件第102行) 配置LoRA适配器
+    
     Args:
         num_labels: 分类标签数量
         
     Returns:
-        model: 配置好的模型
+        model: 配置好LoRA的模型，可直接用于训练
     """
-    model = load_model(num_labels)
-    model = setup_lora(model)
+    model = load_model(num_labels)  # 调用本文件第12行的load_model函数
+    model = setup_lora(model)  # 调用本文件第102行的setup_lora函数
     return model
 
 
@@ -185,7 +195,7 @@ def get_model_for_inference(model_path, num_labels=2):
     # 首先尝试加载基础模型（优先使用本地权重）
     if Config.MODEL_PATH and os.path.exists(Config.MODEL_PATH):
         print("使用本地基础模型权重")
-        base_model = load_model(num_labels=num_labels)
+        base_model = load_model(num_labels=num_labels)  # 调用本文件第12行的load_model函数
     else:
         # 从Hugging Face加载基础模型
         base_model = AutoModelForSequenceClassification.from_pretrained(
